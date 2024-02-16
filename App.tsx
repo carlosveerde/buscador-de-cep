@@ -1,6 +1,6 @@
 import React, {useState} from "react";
-import { View, StyleSheet, Text, TextInput, TouchableOpacity } from "react-native";
-
+import { View, StyleSheet, Text, TextInput, TouchableOpacity, SafeAreaView, Alert} from "react-native";
+import Api from "./src/services/api";
 
 
 export default function App() {
@@ -9,9 +9,39 @@ export default function App() {
   const [bairro, setBairro] = useState('')
   const [localidade, setLocalidade] = useState('')
   const [uf, setUf] = useState('')
+  const [complemento, setComplemento] = useState('')
+  const [ddd, setDdd] = useState('')
+
+  async function buscarCep (){
+    if(cep == ''){
+      Alert.alert('Por favor, insira um CEP!')
+      setCep('')
+    }
+    try {
+      const response =  await Api.get(`/${cep}/json/`)
+      setLogradouro(response.data.logradouro)
+      if(response.data.erro){
+        Alert.alert("CEP Inválido");
+      }
+      if(response.data.complemento === '') {
+        setComplemento('Sem complemento')
+      } else {
+        setComplemento(response.data.complemento);
+      }
+      setBairro(response.data.bairro);
+      setLocalidade(response.data.localidade);
+      setUf(response.data.uf);
+      setDdd(response.data.ddd);
+      console.log(response.data)
+    }
+    catch(error) {
+      Alert.alert('CEP Inválido!')
+      console.log('ERRO: ' + error)
+    }
+  }
 
   return(
-    <View style={styles.containerPrincipal}>
+    <SafeAreaView style={styles.containerPrincipal}>
       <View style={styles.topBar}>
         <Text style={styles.title}>Buscador de CEP</Text>
       </View>
@@ -27,7 +57,9 @@ export default function App() {
         onChangeText={(texto) => setCep(texto)}
         placeholder="CEP"
         />
-        <TouchableOpacity style={styles.botaoBuscar}>
+        <TouchableOpacity 
+        style={styles.botaoBuscar}
+        onPress={buscarCep}>
           <Text style={styles.textoBotaoBuscar}>Buscar</Text>
         </TouchableOpacity>
       </View>
@@ -37,6 +69,12 @@ export default function App() {
         value={logradouro}
         onChangeText={(texto) => setLogradouro(texto)}
         placeholder="Logradouro"
+        />
+        <TextInput
+        style={styles.caixaTexto}
+        value={complemento}
+        onChangeText={(texto) => setComplemento(texto)}
+        placeholder="Complemento"
         />
         <TextInput
         style={styles.caixaTexto}
@@ -50,16 +88,27 @@ export default function App() {
         onChangeText={(texto) => setLocalidade(texto)}
         placeholder="Cidade"
         />
+        <View style={{flexDirection: "row"}}>
         <TextInput
         style={{
           borderColor: "#000000", borderWidth: 2, borderRadius: 10, width: 100, 
-          fontSize: 18, marginTop: 10, marginEnd: 20, marginHorizontal: 20, padding: 15
+          fontSize: 18, marginTop: 10, marginEnd: 20, marginLeft: 20, padding: 15
         }}
         value={uf}
         onChangeText={(texto) => setUf(texto)}
         placeholder= "Estado"
         />
-    </View>
+        <TextInput
+        style={{
+          borderColor: "#000000", borderWidth: 2, borderRadius: 10, width: 100, 
+          fontSize: 18, marginTop: 10, marginEnd: 20, padding: 15
+        }}
+        value={ddd}
+        onChangeText={(texto) => setDdd(texto)}
+        placeholder= "DDD"
+        />
+        </View>
+    </SafeAreaView>
   );
 }
 
